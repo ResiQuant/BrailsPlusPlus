@@ -21,7 +21,7 @@ from numpy import arctan2, cos, sin, sqrt, pi, append, diff, deg2rad
 
 class FootprintScraper(ABC):
     """
-    Abstract base class representing a class that optains footprints for a region.
+    Abstract base class representing a class that obtains footprints for a region.
 
       Methods:
          get_footprints(location): An abstract method to return the footprint given a location

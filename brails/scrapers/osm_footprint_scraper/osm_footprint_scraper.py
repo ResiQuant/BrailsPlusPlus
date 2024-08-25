@@ -91,7 +91,8 @@ class OSM_FootprintScraper(FootprintScraper):
 
     def get_footprints(self, region: RegionBoundary) -> AssetInventory:
         """
-        This method will be used by the caller to obtain the footprints for builings in an area.
+        This method will be used by the caller to obtain the footprints for builings 
+        in an area.
 
         Args:
             region (RegionBoundary): The region of interest.
@@ -210,3 +211,4 @@ class OSM_FootprintScraper(FootprintScraper):
         )
 
         return self._create_asset_inventory(footprints, attributes, self.lengthUnit)
+
