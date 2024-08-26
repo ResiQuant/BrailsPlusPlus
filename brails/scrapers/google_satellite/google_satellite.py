@@ -312,8 +312,19 @@ class GoogleSatellite(ImageScraper):
         # Get the images:
         self.GetGoogleSatelliteImage(asset_footprints, dir_path)
 
-        for key, im in zip(asset_keys, self.satellite_images):
-            if (im is not None):            
+        for key, filename in zip(asset_keys, self.satellite_images):
+            if (filename is not None):  
+                
+                # going to rename image files to use key .. barbaros can fix in code so no rename
+                current_file_path = Path(filename)
+                new_name = f'imsat_{key}{current_file_path.suffix}'
+                new_file_path = current_file_path.parent / new_name
+
+                # sy - to prevent error : [WinError 183] Cannot create a file when that file already exists: 'tmp\\street\\imstreet_37.87343446-122.45684953.jpg' -> 'tmp\\street\\gstrt_596.jpg'
+                # we should not download the files
+                #current_file_path.rename(new_file_path)
+                current_file_path.replace(new_file_path)
+
                 # strip off dirpath
                 #im_stripped = im.replace(dir_path, "")
                 im_stripped = Path(im).name
