@@ -235,24 +235,24 @@ class OSM_FootprintScraper(FootprintScraper):
         
         for bldg_i in range(len(lat)):
             
-            # query = f"""
-            #     [out:json][timeout:5000][maxsize:2000000000];
-            #     way(around:50,{lat[bldg_i]},{lon[bldg_i]})[building];
-            #     out body;
-            #     >;
-            #     out skel qt;
-            #     """
-                
             query = f"""
                 [out:json][timeout:5000][maxsize:2000000000];
-                (
-                  is_in(lat[bldg_i],lon[bldg_i]);
-                  area._[building];
-                );
-                out body; 
-                >; 
+                way(around:50,{lat[bldg_i]},{lon[bldg_i]})[building];
+                out body;
+                >;
                 out skel qt;
                 """
+                
+            # query = f"""
+            #     [out:json][timeout:5000][maxsize:2000000000];
+            #     (
+            #       is_in({lat[bldg_i]},{lon[bldg_i]});
+            #       area._[building];
+            #     );
+            #     out body; 
+            #     >; 
+            #     out skel qt;
+            #     """
             
             url = "http://overpass-api.de/api/interpreter"
             r = requests.get(url, params={"data": query})
