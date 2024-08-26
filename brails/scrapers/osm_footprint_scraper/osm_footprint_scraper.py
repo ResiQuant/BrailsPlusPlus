@@ -212,101 +212,100 @@ class OSM_FootprintScraper(FootprintScraper):
 
         return self._create_asset_inventory(footprints, attributes, self.lengthUnit)
 
-<<<<<<< Updated upstream
-=======
-def get_footprints_coordlist(self, lat, lon):
-    """
-    This method returns the footprints of a building in an area plus other attributed from the footprint database
 
-    Args:
-        lat: (list)
-            list of latitude coordinate for properties of interest
-        long: (list)
-            list of longitude coordinate for properties of interest
 
-    Returns:
-        BuildingInventory: A building inventory for buildings in the region.
-
-    """
+    def get_footprints_coordlist(self, lat, lon):
+        """
+        This method returns the footprints of a building in an area plus other attributed from the footprint database
     
-    attrkeys = ["buildingheight", "erabuilt", "numstories", "roofshape"]
-    attributes = {key: [] for key in attrkeys}
-    fpcount = 0
-    footprints = []
+        Args:
+            lat: (list)
+                list of latitude coordinate for properties of interest
+            long: (list)
+                list of longitude coordinate for properties of interest
     
-    for bldg_i in range(len(lat)):
-        query = f"""
-            [out:json][timeout:5000][maxsize:2000000000];
-            way(around:50,{lat[bldg_i]},{lon[bldg_i]})[building];
-            out body;
-            >;
-            out skel qt;
-            """
-        
-        url = "http://overpass-api.de/api/interpreter"
-        r = requests.get(url, params={"data": query})
-        
-        datalist = r.json()["elements"]
-        nodedict = {}
-        for data in datalist:
-            if data["type"] == "node":
-                nodedict[data["id"]] = [data["lon"], data["lat"]]
-        
-        attrmap = {
-            "start_date": "erabuilt",
-            "building:start_date": "erabuilt",
-            "construction_date": "erabuilt",
-            "roof:shape": "roofshape",
-            "height": "buildingheight",
-        }
-        
-        levelkeys = {"building:levels", "roof:levels", "building:levels:underground"}
-        otherattrkeys = set(attrmap.keys())
-        datakeys = levelkeys.union(otherattrkeys)
-        
-        for data in datalist:
-            if data["type"] == "way":
-                nodes = data["nodes"]
-                footprint = []
-                for node in nodes:
-                    footprint.append(nodedict[node])
-                footprints.append(footprint)
-        
-                fpcount += 1
-                availableTags = set(data["tags"].keys()).intersection(datakeys)
-                for tag in availableTags:
-                    nstory = 0
-                    if tag in otherattrkeys:
-                        attributes[attrmap[tag]].append(data["tags"][tag])
-                    elif tag in levelkeys:
-                        try:
-                            nstory += int(data["tags"][tag])
-                        except:
-                            pass
-        
-                    if nstory > 0:
-                        attributes["numstories"].append(nstory)
-                for attr in attrkeys:
-                    if len(attributes[attr]) != fpcount:
-                        attributes[attr].append("NA")
-        
-    attributes["buildingheight"] = [
-        self._height2float(height, self.lengthUnit)
-        for height in attributes["buildingheight"]
-    ]
+        Returns:
+            BuildingInventory: A building inventory for buildings in the region.
     
-    attributes["erabuilt"] = [
-        self._yearstr2int(year) for year in attributes["erabuilt"]
-    ]
-    
-    attributes["numstories"] = [
-        nstories if nstories != "NA" else None
-        for nstories in attributes["numstories"]
-    ]
-    
-    print(
-        f"\nFound a total of {fpcount} building footprints in {queryarea_printname}"
-    )
-    
-    return self._create_asset_inventory(footprints, attributes, self.lengthUnit)
->>>>>>> Stashed changes
+        """
+        
+        attrkeys = ["buildingheight", "erabuilt", "numstories", "roofshape"]
+        attributes = {key: [] for key in attrkeys}
+        fpcount = 0
+        footprints = []
+        
+        for bldg_i in range(len(lat)):
+            query = f"""
+                [out:json][timeout:5000][maxsize:2000000000];
+                way(around:50,{lat[bldg_i]},{lon[bldg_i]})[building];
+                out body;
+                >;
+                out skel qt;
+                """
+            
+            url = "http://overpass-api.de/api/interpreter"
+            r = requests.get(url, params={"data": query})
+            
+            datalist = r.json()["elements"]
+            nodedict = {}
+            for data in datalist:
+                if data["type"] == "node":
+                    nodedict[data["id"]] = [data["lon"], data["lat"]]
+            
+            attrmap = {
+                "start_date": "erabuilt",
+                "building:start_date": "erabuilt",
+                "construction_date": "erabuilt",
+                "roof:shape": "roofshape",
+                "height": "buildingheight",
+            }
+            
+            levelkeys = {"building:levels", "roof:levels", "building:levels:underground"}
+            otherattrkeys = set(attrmap.keys())
+            datakeys = levelkeys.union(otherattrkeys)
+            
+            for data in datalist:
+                if data["type"] == "way":
+                    nodes = data["nodes"]
+                    footprint = []
+                    for node in nodes:
+                        footprint.append(nodedict[node])
+                    footprints.append(footprint)
+            
+                    fpcount += 1
+                    availableTags = set(data["tags"].keys()).intersection(datakeys)
+                    for tag in availableTags:
+                        nstory = 0
+                        if tag in otherattrkeys:
+                            attributes[attrmap[tag]].append(data["tags"][tag])
+                        elif tag in levelkeys:
+                            try:
+                                nstory += int(data["tags"][tag])
+                            except:
+                                pass
+            
+                        if nstory > 0:
+                            attributes["numstories"].append(nstory)
+                    for attr in attrkeys:
+                        if len(attributes[attr]) != fpcount:
+                            attributes[attr].append("NA")
+            
+        attributes["buildingheight"] = [
+            self._height2float(height, self.lengthUnit)
+            for height in attributes["buildingheight"]
+        ]
+        
+        attributes["erabuilt"] = [
+            self._yearstr2int(year) for year in attributes["erabuilt"]
+        ]
+        
+        attributes["numstories"] = [
+            nstories if nstories != "NA" else None
+            for nstories in attributes["numstories"]
+        ]
+        
+        print(
+            f"\nFound a total of {fpcount} building footprints in {queryarea_printname}"
+        )
+        
+        return self._create_asset_inventory(footprints, attributes, self.lengthUnit)
