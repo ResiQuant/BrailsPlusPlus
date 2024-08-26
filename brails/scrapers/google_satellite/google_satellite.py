@@ -326,8 +326,7 @@ class GoogleSatellite(ImageScraper):
                 current_file_path.replace(new_file_path)
 
                 # strip off dirpath
-                #im_stripped = im.replace(dir_path, "")
-                im_stripped = Path(im).name
-                result.add_image(key, im_stripped)
+                name_stripped = new_file_path.name
+                result.add_image(key, name_stripped)
             
         return result
