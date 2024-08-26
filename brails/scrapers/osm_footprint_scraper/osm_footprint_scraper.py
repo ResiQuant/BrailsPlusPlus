@@ -214,7 +214,7 @@ class OSM_FootprintScraper(FootprintScraper):
 
 
 
-    def get_footprints_coordlist(self, lat, lon):
+    def get_footprints_coordlist(self, lat, lon) -> AssetInventory:
         """
         This method returns the footprints of a building in an area plus other attributed from the footprint database
     
@@ -235,6 +235,7 @@ class OSM_FootprintScraper(FootprintScraper):
         footprints = []
         
         for bldg_i in range(len(lat)):
+            
             query = f"""
                 [out:json][timeout:5000][maxsize:2000000000];
                 way(around:50,{lat[bldg_i]},{lon[bldg_i]})[building];
