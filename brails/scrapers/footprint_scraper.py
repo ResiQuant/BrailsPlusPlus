@@ -49,6 +49,25 @@ class FootprintScraper(ABC):
 
         """
         pass
+    
+    def get_footprints_coordlist(self, lat, lon) -> AssetInventory:
+        """
+        An abstract class that must be implemented by subclasses.
+
+        This method will be used by the caller to obtain the footprints for builings in an area.
+
+        Args:
+            lat: (list)
+                list of latitude coordinate for properties of interest
+            long: (list)
+                list of longitude coordinate for properties of interest
+
+        Returns:
+              BuildingInventory:
+                    A building inventory for buildings in the region.
+
+        """
+        pass
 
     def _polygon_area(self, lats, lons, length_unit):
         """

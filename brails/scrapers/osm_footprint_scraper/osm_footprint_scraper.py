@@ -305,7 +305,7 @@ class OSM_FootprintScraper(FootprintScraper):
         ]
         
         print(
-            f"\nFound a total of {fpcount} building footprints in {queryarea_printname}"
+            f"\nFound a total of {fpcount} building footprints"
         )
         
         return self._create_asset_inventory(footprints, attributes, self.lengthUnit)
