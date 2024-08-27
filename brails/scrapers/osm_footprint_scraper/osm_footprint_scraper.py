@@ -245,6 +245,14 @@ class OSM_FootprintScraper(FootprintScraper):
         for bldg_i in range(len(lat)):
             # print(address_list[bldg_i])
             
+            if np.isnan(lat[0]):
+                # no geolocation
+                footprints.append('NA')
+                for attr in attrkeys:
+                    attributes[attr].append('NA')
+                print('Coordinates are NaN')                         
+                
+            
             for geoloc_method in geoloc_options:
                 # print(geoloc_method)
         
@@ -260,7 +268,7 @@ class OSM_FootprintScraper(FootprintScraper):
                     location = geolocator.geocode(address_list[bldg_i], exactly_one=False)
                     lat[bldg_i], lon[bldg_i] = location[0].latitude, location[0].longitude
                     
-                    # check that new geolocation gives one unique property
+                    # check geolocation gives one unique property
                     if (location is None) or (len(location) > 1):
                         geo_flag = False
                     else:
