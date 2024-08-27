@@ -22,6 +22,7 @@ from brails.utils.geo_tools import *
 import concurrent.futures
 from requests.adapters import HTTPAdapter, Retry
 import unicodedata
+import geopandas as gpd
 
 
 class OSM_FootprintScraper(FootprintScraper):
@@ -227,14 +228,16 @@ class OSM_FootprintScraper(FootprintScraper):
             BuildingInventory: A building inventory for buildings in the region.
     
         """
-        
+                
         attrkeys = ["buildingheight", "erabuilt", "numstories", "roofshape"]
         attributes = {key: [] for key in attrkeys}
         fpcount = 0
         footprints = []
         
         for bldg_i in range(len(lat)):
-            
+            print(bldg_i)
+        
+            # Call OSM API for building 50m around the given point
             # query = f"""
             #     [out:json][timeout:5000][maxsize:2000000000];
             #     way(around:50,{lat[bldg_i]},{lon[bldg_i]})[building];
@@ -242,7 +245,8 @@ class OSM_FootprintScraper(FootprintScraper):
             #     >;
             #     out skel qt;
             #     """
-                
+        
+            # Call OSM API at the lat lon
             query = f"""
                 [out:json][timeout:5000][maxsize:2000000000];
                 (
@@ -262,6 +266,7 @@ class OSM_FootprintScraper(FootprintScraper):
             for data in datalist:
                 if data["type"] == "node":
                     nodedict[data["id"]] = [data["lon"], data["lat"]]
+                
             
             attrmap = {
                 "start_date": "erabuilt",
@@ -274,21 +279,24 @@ class OSM_FootprintScraper(FootprintScraper):
             levelkeys = {"building:levels", "roof:levels", "building:levels:underground"}
             otherattrkeys = set(attrmap.keys())
             datakeys = levelkeys.union(otherattrkeys)
-            
+        
+            # Re organized the fetched footprints
+            footprint = []
+            footprints_bldg = [] 
+            attributes_bldg = {key: [] for key in attrkeys}
             for data in datalist:
                 if data["type"] == "way":
                     nodes = data["nodes"]
                     footprint = []
                     for node in nodes:
                         footprint.append(nodedict[node])
-                    footprints.append(footprint)
+                    footprints_bldg.append(footprint)
             
-                    fpcount += 1
                     availableTags = set(data["tags"].keys()).intersection(datakeys)
                     for tag in availableTags:
                         nstory = 0
                         if tag in otherattrkeys:
-                            attributes[attrmap[tag]].append(data["tags"][tag])
+                            attributes_bldg[attrmap[tag]].append(data["tags"][tag])
                         elif tag in levelkeys:
                             try:
                                 nstory += int(data["tags"][tag])
@@ -296,11 +304,41 @@ class OSM_FootprintScraper(FootprintScraper):
                                 pass
             
                         if nstory > 0:
-                            attributes["numstories"].append(nstory)
+                            attributes_bldg["numstories"].append(nstory)
                     for attr in attrkeys:
                         if len(attributes[attr]) != fpcount:
-                            attributes[attr].append("NA")
+                            attributes_bldg[attr].append("NA")
+        
+            # Check if footprints were returned
+            if not footprint:
+                sys.exit('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
+            else:
+                fpcount += 1
             
+            # Discard all the footprints that do no intercept with our point and keep the one with centroid 
+            # closest to our coordinates (the top in the list)
+            
+            #Turn building footprints into geopandas 
+            fp_list = []
+            for fp_i in range(len(footprints_bldg)):
+                fp_list.append(Polygon(footprints_bldg[fp_i]))
+            gdf = gpd.GeoDataFrame(geometry=fp_list)
+        
+            # Turn building coordinates into geopandas
+            point = [Point(lon[bldg_i], lat[bldg_i])]
+            gdf_point = gpd.GeoDataFrame(geometry=point)
+        
+            # Get the index of the intercepting polygons with the lat lon coordinates
+            intersecting_polygon = gpd.sjoin(gdf_point, gdf, predicate="within")
+            fp_idx = intersecting_polygon['index_right'].to_numpy()
+            fp_idx = np.min(fp_idx) # keep the top fp (lowest index) since that is the closest to the desired point
+            
+            # Store the results for the one footprint
+            footprints.append(footprints_bldg[fp_idx])
+            for attr in attrkeys:
+                attributes[attr].append(attributes_bldg[attr][fp_idx])
+        
+        # Save in the proper format for AssetInventory class
         attributes["buildingheight"] = [
             self._height2float(height, self.lengthUnit)
             for height in attributes["buildingheight"]
