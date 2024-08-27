@@ -245,7 +245,7 @@ class OSM_FootprintScraper(FootprintScraper):
         for bldg_i in range(len(lat)):
             # print(address_list[bldg_i])
             
-            if np.isnan(lat[0]):
+            if np.isnan(lat[bldg_i]):
                 # no geolocation
                 footprints.append('NA')
                 for attr in attrkeys:
