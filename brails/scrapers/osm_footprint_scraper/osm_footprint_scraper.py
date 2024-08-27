@@ -23,6 +23,7 @@ import concurrent.futures
 from requests.adapters import HTTPAdapter, Retry
 import unicodedata
 import geopandas as gpd
+import geopy.geocoders as geopy
 
 
 class OSM_FootprintScraper(FootprintScraper):
