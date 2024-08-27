@@ -240,6 +240,7 @@ class OSM_FootprintScraper(FootprintScraper):
         fpbldgscount = 0
         footprints = []
         geoloc_options = [basic_geoloc_method, 'ArcGIS', 'Nominatim', 'Photon'] # alternative methods if basic does not work
+        geo_flag = True
         
         for bldg_i in range(len(lat)):
             # print(address_list[bldg_i])
