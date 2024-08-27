@@ -231,7 +231,7 @@ class OSM_FootprintScraper(FootprintScraper):
                 
         attrkeys = ["buildingheight", "erabuilt", "numstories", "roofshape"]
         attributes = {key: [] for key in attrkeys}
-        fpcount = 0
+        fpbldgscount = 0
         footprints = []
         
         for bldg_i in range(len(lat)):
@@ -281,6 +281,7 @@ class OSM_FootprintScraper(FootprintScraper):
             datakeys = levelkeys.union(otherattrkeys)
         
             # Re organized the fetched footprints
+            fpcount = 0
             footprint = []
             footprints_bldg = [] 
             attributes_bldg = {key: [] for key in attrkeys}
@@ -292,6 +293,7 @@ class OSM_FootprintScraper(FootprintScraper):
                         footprint.append(nodedict[node])
                     footprints_bldg.append(footprint)
             
+                    fpcount += 1
                     availableTags = set(data["tags"].keys()).intersection(datakeys)
                     for tag in availableTags:
                         nstory = 0
@@ -313,7 +315,7 @@ class OSM_FootprintScraper(FootprintScraper):
             if not footprint:
                 sys.exit('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
             else:
-                fpcount += 1
+                fpbldgscount += 1
             
             # Discard all the footprints that do no intercept with our point and keep the one with centroid 
             # closest to our coordinates (the top in the list)
@@ -337,7 +339,7 @@ class OSM_FootprintScraper(FootprintScraper):
             footprints.append(footprints_bldg[fp_idx])
             for attr in attrkeys:
                 attributes[attr].append(attributes_bldg[attr][fp_idx])
-        
+                
         # Save in the proper format for AssetInventory class
         attributes["buildingheight"] = [
             self._height2float(height, self.lengthUnit)
