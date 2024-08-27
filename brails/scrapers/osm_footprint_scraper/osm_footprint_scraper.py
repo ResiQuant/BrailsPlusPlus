@@ -365,49 +365,41 @@ class OSM_FootprintScraper(FootprintScraper):
                     if footprint:
                         fpbldgscount += 1
                         break # do not try more geolocation methods. This returned a footprint
-                        
-            
-                # Review if footprints were returned with all the geolocation trials
-                if footprint:
-                    # Discard all the footprints that do no intercept with our point and keep the one with centroid 
-                    # closest to our coordinates (the top in the list)
-                    
-                    #Turn building footprints into geopandas 
-                    fp_list = []
-                    for fp_i in range(len(footprints_bldg)):
-                        fp_list.append(Polygon(footprints_bldg[fp_i]))
-                    gdf = gpd.GeoDataFrame(geometry=fp_list)
+
+            # Review if footprints were returned with all the geolocation trials
+            if footprint:
+                # Discard all the footprints that do no intercept with our point and keep the one with centroid 
+                # closest to our coordinates (the top in the list)
                 
-                    if len(gdf) > 1:
-                        # Turn building coordinates into geopandas
-                        point = [Point(lon[bldg_i], lat[bldg_i])]
-                        gdf_point = gpd.GeoDataFrame(geometry=point)
-                    
-                        # Get the index of the intercepting polygons with the lat lon coordinates
-                        intersecting_polygon = gpd.sjoin(gdf_point, gdf, predicate="within")
-                        fp_idx = intersecting_polygon['index_right'].to_numpy()
-                        fp_idx = np.min(fp_idx) # keep the top fp (lowest index) since that is the closest to the desired point
-                    else:
-                        fp_idx = 0
-                    
-                    # Store the results for the one footprint
-                    footprints.append(footprints_bldg[fp_idx])
-                    for attr in attrkeys:
-                        attributes[attr].append(attributes_bldg[attr][fp_idx])
+                #Turn building footprints into geopandas 
+                fp_list = []
+                for fp_i in range(len(footprints_bldg)):
+                    fp_list.append(Polygon(footprints_bldg[fp_i]))
+                gdf = gpd.GeoDataFrame(geometry=fp_list)
+            
+                if len(gdf) > 1:
+                    # Turn building coordinates into geopandas
+                    point = [Point(lon[bldg_i], lat[bldg_i])]
+                    gdf_point = gpd.GeoDataFrame(geometry=point)
+                
+                    # Get the index of the intercepting polygons with the lat lon coordinates
+                    intersecting_polygon = gpd.sjoin(gdf_point, gdf, predicate="within")
+                    fp_idx = intersecting_polygon['index_right'].to_numpy()
+                    fp_idx = np.min(fp_idx) # keep the top fp (lowest index) since that is the closest to the desired point
                 else:
-                    # No footprint returned
-                    footprints.append('NA')
-                    for attr in attrkeys:
-                        attributes[attr].append('NA')
-                    print('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
-                            
+                    fp_idx = 0
+                
+                # Store the results for the one footprint
+                footprints.append(footprints_bldg[fp_idx])
+                for attr in attrkeys:
+                    attributes[attr].append(attributes_bldg[attr][fp_idx])
             else:
-                # no geolocation
+                # No footprint returned
                 footprints.append('NA')
                 for attr in attrkeys:
                     attributes[attr].append('NA')
-                print('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' no geolocolation')                         
-                
+                print('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
+                              
         # Save in the proper format for AssetInventory class
         attributes["buildingheight"] = [
             self._height2float(height, self.lengthUnit)
