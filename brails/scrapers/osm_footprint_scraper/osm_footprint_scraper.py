@@ -367,7 +367,7 @@ class OSM_FootprintScraper(FootprintScraper):
                         break # do not try more geolocation methods. This returned a footprint
 
             # Review if footprints were returned with all the geolocation trials
-            if footprint:
+            if (footprint) and (geo_flag):
                 # Discard all the footprints that do no intercept with our point and keep the one with centroid 
                 # closest to our coordinates (the top in the list)
                 
