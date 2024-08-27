@@ -214,7 +214,8 @@ class OSM_FootprintScraper(FootprintScraper):
         return self._create_asset_inventory(footprints, attributes, self.lengthUnit)
 
 
-    def get_footprints_coordlist(self, lat, lon) -> AssetInventory:
+    def get_footprints_coordlist(self, lat, lon, address_list, 
+                                 basic_geoloc_method='GoogleV3') -> AssetInventory:
         """
         This method returns the footprints of building per lat lon lists
     
@@ -223,122 +224,167 @@ class OSM_FootprintScraper(FootprintScraper):
                 list of latitude coordinate for properties of interest
             long: (list)
                 list of longitude coordinate for properties of interest
+            address_list: (list)
+                list of addresses for properties of interest
+            basic_geoloc_method: (str)
+                name of the geocoding method used to generate the lat lon lists
     
         Returns:
             BuildingInventory: A building inventory for buildings in the region.
     
-        """
-                
+        """                
+        
         attrkeys = ["buildingheight", "erabuilt", "numstories", "roofshape"]
         attributes = {key: [] for key in attrkeys}
         fpbldgscount = 0
         footprints = []
+        geoloc_options = [basic_geoloc_method, 'ArcGIS', 'Nominatim', 'Photon'] # alternative methods if basic does not work
         
         for bldg_i in range(len(lat)):
-            print(bldg_i)
-        
-            # Call OSM API for building 50m around the given point
-            # query = f"""
-            #     [out:json][timeout:5000][maxsize:2000000000];
-            #     way(around:50,{lat[bldg_i]},{lon[bldg_i]})[building];
-            #     out body;
-            #     >;
-            #     out skel qt;
-            #     """
-        
-            # Call OSM API at the lat lon
-            query = f"""
-                [out:json][timeout:5000][maxsize:2000000000];
-                (
-                  is_in({lat[bldg_i]},{lon[bldg_i]});
-                  area._[building];
-                );
-                out body; 
-                >; 
-                out skel qt;
-                """
+            # print(address_list[bldg_i])
             
-            url = "http://overpass-api.de/api/interpreter"
-            r = requests.get(url, params={"data": query})
-            
-            datalist = r.json()["elements"]
-            nodedict = {}
-            for data in datalist:
-                if data["type"] == "node":
-                    nodedict[data["id"]] = [data["lon"], data["lat"]]
+            for geoloc_method in geoloc_options:
+                # print(geoloc_method)
+        
+                # Geolocate again if not basic method
+                if geoloc_method != basic_geoloc_method:
+                    match geoloc_method:
+                        case 'ArcGIS':
+                            geolocator = geopy.ArcGIS()      
+                        case 'Nominatim':
+                            geolocator = geopy.Nominatim(user_agent="my_app") 
+                        case 'Photon':
+                            geolocator = geopy.Photon()
+                    location = geolocator.geocode(address_list[bldg_i])
+                    lat[bldg_i], lon[bldg_i] = location.latitude, location.longitude
                 
+                # Call OSM API for building 50m around the given point
+                # query = f"""
+                #     [out:json][timeout:5000][maxsize:2000000000];
+                #     way(around:50,{lat[bldg_i]},{lon[bldg_i]})[building];
+                #     out body;
+                #     >;
+                #     out skel qt;
+                #     """
             
-            attrmap = {
-                "start_date": "erabuilt",
-                "building:start_date": "erabuilt",
-                "construction_date": "erabuilt",
-                "roof:shape": "roofshape",
-                "height": "buildingheight",
-            }
+                # Call OSM API at the lat lon
+                query = f"""
+                    [out:json][timeout:5000][maxsize:2000000000];
+                    (
+                      is_in({lat[bldg_i]},{lon[bldg_i]});
+                      area._[building];
+                    );
+                    out body; 
+                    >; 
+                    out skel qt;
+                    """
             
-            levelkeys = {"building:levels", "roof:levels", "building:levels:underground"}
-            otherattrkeys = set(attrmap.keys())
-            datakeys = levelkeys.union(otherattrkeys)
+                # Call OSM API for building 50m around the given point
+                # query = f"""
+                # [out:json][timeout:5000][maxsize:2000000000];
+                # (
+                #   is_in({lat[bldg_i]},{lon[bldg_i]})->.searchArea;
+                #   area.searchArea[building];
+                # );
+                # out body; 
+                # >; 
+                # out skel qt;
+                # """
+                
+                url = "http://overpass-api.de/api/interpreter"
+                r = requests.get(url, params={"data": query})
+                
+                datalist = r.json()["elements"]
+                nodedict = {}
+                for data in datalist:
+                    if data["type"] == "node":
+                        nodedict[data["id"]] = [data["lon"], data["lat"]]
+                
+                attrmap = {
+                    "start_date": "erabuilt",
+                    "building:start_date": "erabuilt",
+                    "construction_date": "erabuilt",
+                    "roof:shape": "roofshape",
+                    "height": "buildingheight",
+                }
+                
+                levelkeys = {"building:levels", "roof:levels", "building:levels:underground"}
+                otherattrkeys = set(attrmap.keys())
+                datakeys = levelkeys.union(otherattrkeys)
+            
+                # Re organize the fetched footprints
+                fpcount = 0
+                footprint = []
+                footprints_bldg = [] 
+                attributes_bldg = {key: [] for key in attrkeys}
+                for data in datalist:
+                    if data["type"] == "way":
+                        nodes = data["nodes"]
+                        footprint = []
+                        for node in nodes:
+                            footprint.append(nodedict[node])
+                        footprints_bldg.append(footprint)
+                
+                        fpcount += 1
+                        availableTags = set(data["tags"].keys()).intersection(datakeys)
+                        for tag in availableTags:
+                            nstory = 0
+                            if tag in otherattrkeys:
+                                attributes_bldg[attrmap[tag]].append(data["tags"][tag])
+                            elif tag in levelkeys:
+                                try:
+                                    nstory += int(data["tags"][tag])
+                                except:
+                                    pass
+                
+                            if nstory > 0:
+                                attributes_bldg["numstories"].append(nstory)
+                        for attr in attrkeys:
+                            if len(attributes[attr]) != fpcount:
+                                attributes_bldg[attr].append("NA")
+                
+                # Check if footprints were returned
+                if footprint:
+                    fpbldgscount += 1
+                    break # do not try more geolocation methods. This returned a footprint
+                    
         
-            # Re organized the fetched footprints
-            fpcount = 0
-            footprint = []
-            footprints_bldg = [] 
-            attributes_bldg = {key: [] for key in attrkeys}
-            for data in datalist:
-                if data["type"] == "way":
-                    nodes = data["nodes"]
-                    footprint = []
-                    for node in nodes:
-                        footprint.append(nodedict[node])
-                    footprints_bldg.append(footprint)
+            # Review if footprints were returned with all the geolocation trials
+            if footprint:
+                # Discard all the footprints that do no intercept with our point and keep the one with centroid 
+                # closest to our coordinates (the top in the list)
+                
+                #Turn building footprints into geopandas 
+                fp_list = []
+                for fp_i in range(len(footprints_bldg)):
+                    fp_list.append(Polygon(footprints_bldg[fp_i]))
+                gdf = gpd.GeoDataFrame(geometry=fp_list)
             
-                    fpcount += 1
-                    availableTags = set(data["tags"].keys()).intersection(datakeys)
-                    for tag in availableTags:
-                        nstory = 0
-                        if tag in otherattrkeys:
-                            attributes_bldg[attrmap[tag]].append(data["tags"][tag])
-                        elif tag in levelkeys:
-                            try:
-                                nstory += int(data["tags"][tag])
-                            except:
-                                pass
-            
-                        if nstory > 0:
-                            attributes_bldg["numstories"].append(nstory)
-                    for attr in attrkeys:
-                        if len(attributes[attr]) != fpcount:
-                            attributes_bldg[attr].append("NA")
-        
-            # Check if footprints were returned
-            if not footprint:
-                sys.exit('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
+                if len(gdf) > 1:
+                    # Turn building coordinates into geopandas
+                    point = [Point(lon[bldg_i], lat[bldg_i])]
+                    gdf_point = gpd.GeoDataFrame(geometry=point)
+                
+                    # Get the index of the intercepting polygons with the lat lon coordinates
+                    intersecting_polygon = gpd.sjoin(gdf_point, gdf, predicate="within")
+                    fp_idx = intersecting_polygon['index_right'].to_numpy()
+                    fp_idx = np.min(fp_idx) # keep the top fp (lowest index) since that is the closest to the desired point
+                else:
+                    fp_idx = 0
+                
+                # Store the results for the one footprint
+                footprints.append(footprints_bldg[fp_idx])
+                for attr in attrkeys:
+                    attributes[attr].append(attributes_bldg[attr][fp_idx])
             else:
-                fpbldgscount += 1
-            
-            # Discard all the footprints that do no intercept with our point and keep the one with centroid 
-            # closest to our coordinates (the top in the list)
-            
-            #Turn building footprints into geopandas 
-            fp_list = []
-            for fp_i in range(len(footprints_bldg)):
-                fp_list.append(Polygon(footprints_bldg[fp_i]))
-            gdf = gpd.GeoDataFrame(geometry=fp_list)
+                # No footprint returned
+                footprints.append('NA')
+                for attr in attrkeys:
+                    attributes[attr].append('NA')
+                print('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
+                        
+                
         
-            # Turn building coordinates into geopandas
-            point = [Point(lon[bldg_i], lat[bldg_i])]
-            gdf_point = gpd.GeoDataFrame(geometry=point)
-        
-            # Get the index of the intercepting polygons with the lat lon coordinates
-            intersecting_polygon = gpd.sjoin(gdf_point, gdf, predicate="within")
-            fp_idx = intersecting_polygon['index_right'].to_numpy()
-            fp_idx = np.min(fp_idx) # keep the top fp (lowest index) since that is the closest to the desired point
-            
-            # Store the results for the one footprint
-            footprints.append(footprints_bldg[fp_idx])
-            for attr in attrkeys:
-                attributes[attr].append(attributes_bldg[attr][fp_idx])
                 
         # Save in the proper format for AssetInventory class
         attributes["buildingheight"] = [
@@ -356,7 +402,7 @@ class OSM_FootprintScraper(FootprintScraper):
         ]
         
         print(
-            f"\nFound a total of {fpcount} building footprints"
+            f"\nFound a total of {fpbldgscount} building footprints"
         )
         
         return self._create_asset_inventory(footprints, attributes, self.lengthUnit)
