@@ -242,7 +242,7 @@ class OSM_FootprintScraper(FootprintScraper):
         geoloc_options = [basic_geoloc_method, 'ArcGIS', 'Nominatim', 'Photon'] # alternative methods if basic does not work
         geo_flag = True
         
-        for bldg_i in range(len(lat)):
+        for bldg_i in [0]:#range(len(lat)):
             print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
             
             if np.isnan(lat[0]):
@@ -250,15 +250,13 @@ class OSM_FootprintScraper(FootprintScraper):
                 footprints.append('NA')
                 for attr in attrkeys:
                     attributes[attr].append('NA')
-                print('Coordinates are NaN')                         
-                
+                print('Coordinates are NaN')                             
             
             for geoloc_method in geoloc_options:
-                # print(geoloc_method)
+                print(geoloc_method)
         
                 # Geolocate again if not basic method
                 if geoloc_method != basic_geoloc_method:
-                    print('try '+geoloc_method)
                     match geoloc_method:
                         case 'ArcGIS':
                             geolocator = geopy.ArcGIS(timeout = 10)      
@@ -266,8 +264,11 @@ class OSM_FootprintScraper(FootprintScraper):
                             geolocator = geopy.Nominatim(user_agent="my_app", timeout = 10) 
                         case 'Photon':
                             geolocator = geopy.Photon(timeout = 10)
-                    location = geolocator.geocode(address_list[bldg_i], exactly_one=False)
-                    lat[bldg_i], lon[bldg_i] = location[0].latitude, location[0].longitude
+                    try:
+                        location = geolocator.geocode(address_list[bldg_i], exactly_one=False)
+                        lat[bldg_i], lon[bldg_i] = location[0].latitude, location[0].longitude
+                    except:
+                        location = None
                     
                     # check geolocation gives one unique property
                     if (location is None) or (len(location) > 1):
@@ -338,15 +339,15 @@ class OSM_FootprintScraper(FootprintScraper):
                     attributes_bldg = {key: [] for key in attrkeys}
                     for data in datalist:
                         if data["type"] == "way":
-                            nodes = data["nodes"]
-                            footprint = []
-                            for node in nodes:
-                                footprint.append(nodedict[node])
-                            footprints_bldg.append(footprint)
-                    
-                            fpcount += 1
-                            
-                            if 'tags' in data.keys():
+                            if ("building" in data["tags"].keys()) and (data["tags"]["building"] == "yes"):
+                                nodes = data["nodes"]
+                                footprint = []
+                                for node in nodes:
+                                    footprint.append(nodedict[node])
+                                footprints_bldg.append(footprint)
+                        
+                                fpcount += 1
+                                                        
                                 availableTags = set(data["tags"].keys()).intersection(datakeys)
                                 for tag in availableTags:
                                     nstory = 0
@@ -360,15 +361,15 @@ class OSM_FootprintScraper(FootprintScraper):
                         
                                     if nstory > 0:
                                         attributes_bldg["numstories"].append(nstory)
-                            for attr in attrkeys:
-                                if len(attributes[attr]) != fpcount:
-                                    attributes_bldg[attr].append("NA")
+                                for attr in attrkeys:
+                                    if len(attributes[attr]) != fpcount:
+                                        attributes_bldg[attr].append("NA")
                     
                     # Check if footprints were returned
                     if footprint:
                         fpbldgscount += 1
                         break # do not try more geolocation methods. This returned a footprint
-
+        
             # Review if footprints were returned with all the geolocation trials
             if (footprint) and (geo_flag):
                 # Discard all the footprints that do no intercept with our point and keep the one with centroid 
