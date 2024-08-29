@@ -60,7 +60,7 @@ class GoogleSatellite(ImageScraper):
     def __init__(self):
         self.dir_location = ''
 
-    def GetGoogleSatelliteImage(self, footprints, dir_location):
+    def GetGoogleSatelliteImage(self, footprints, dir_location, address_list):
 
         self.dir_location = dir_location
 
@@ -250,15 +250,21 @@ class GoogleSatellite(ImageScraper):
         self.centroids = []
         self.satellite_images = []
         inps = []
-        for fp in footprints:
-            print(fp)
-            fp_cent = Polygon(fp).centroid
-            self.centroids.append([fp_cent.x, fp_cent.y])
-            imName = str(round(fp_cent.y, 8)) + str(round(fp_cent.x, 8))
-            imName.replace(".", "")
-            im_name = f"{self.dir_location}/imsat_{imName}.jpg"
-            self.satellite_images.append(im_name)
-            inps.append((fp, im_name))
+        for fp_i, fp in enumerate(footprints):
+            
+            try:
+                fp_cent = Polygon(fp).centroid
+                self.centroids.append([fp_cent.x, fp_cent.y])
+                imName = str(round(fp_cent.y, 8)) + str(round(fp_cent.x, 8))
+                imName.replace(".", "")
+                im_name = f"{self.dir_location}/imsat_{imName}.jpg"
+                self.satellite_images.append(im_name)
+                inps.append((fp, im_name))
+            except:
+                ##############
+                print(fp)
+                print(address_list[fp_i])
+                ##############
 
         # Create a directory to save the satellite images:
         # os.makedirs(self.dir_location, exist_ok=True)
@@ -278,7 +284,7 @@ class GoogleSatellite(ImageScraper):
                 except Exception as exc:
                     print("%r generated an exception: %s" % (url, exc))
 
-    def get_images(self, inventory: AssetInventory, dir_path: str) -> ImageSet:
+    def get_images(self, inventory: AssetInventory, dir_path: str, address_list) -> ImageSet:
         """
         This method obtains aerial imagery of buildings given the footprints
         in the asset inventory
@@ -286,8 +292,10 @@ class GoogleSatellite(ImageScraper):
         Args:
               inventory (AssetInventory):
                    The AssetInventory.
-              dir_location (string):
+              dir_path (string):
                    The directory in which to place the images.
+              address_list: (list or np.array)
+                  list of corresponding addresses to the footprints in the inventory
 
         Returns:
               Image_Set:
@@ -311,7 +319,7 @@ class GoogleSatellite(ImageScraper):
             asset_keys.append(key)
 
         # Get the images:
-        self.GetGoogleSatelliteImage(asset_footprints, dir_path)
+        self.GetGoogleSatelliteImage(asset_footprints, dir_path, address_list)
 
         for key, filename in zip(asset_keys, self.satellite_images):
             if (filename is not None):  
