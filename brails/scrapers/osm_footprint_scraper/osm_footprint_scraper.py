@@ -331,7 +331,15 @@ class OSM_FootprintScraper(FootprintScraper):
                     levelkeys = {"building:levels", "roof:levels", "building:levels:underground"}
                     otherattrkeys = set(attrmap.keys())
                     datakeys = levelkeys.union(otherattrkeys)
-                
+                                        
+                    # keep only footprints with a building tag. If none, then consider all avaialble footprints
+                    datalist_updated = []
+                    for data in datalist:
+                        if ("tags" in data.keys()) and ("building" in data["tags"].keys()):
+                            datalist_updated.append(data)
+                    if datalist_updated:
+                        datalist = datalist_updated
+                    
                     # Re organize the fetched footprints
                     fpcount = 0
                     footprint = []
