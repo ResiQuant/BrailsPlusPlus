@@ -243,7 +243,7 @@ class OSM_FootprintScraper(FootprintScraper):
         geo_flag = True
         
         for bldg_i in range(len(lat)):
-            # print(address_list[bldg_i])
+            print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
             
             if np.isnan(lat[0]):
                 # no geolocation
