@@ -243,6 +243,7 @@ class OSM_FootprintScraper(FootprintScraper):
         geo_flag = True
         
         for bldg_i in range(len(lat)):            
+            print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
             
             if np.isnan(lat[0]):
                 # no geolocation
@@ -417,8 +418,7 @@ class OSM_FootprintScraper(FootprintScraper):
                 footprints.append([[0,0], [0,0]])
                 for attr in attrkeys:
                     attributes[attr].append('NA')
-                print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
-                print(' with coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
+                print(' at '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
                               
         # Save in the proper format for AssetInventory class
         attributes["buildingheight"] = [
