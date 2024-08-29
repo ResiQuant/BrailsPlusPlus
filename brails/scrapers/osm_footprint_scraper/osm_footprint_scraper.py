@@ -241,6 +241,7 @@ class OSM_FootprintScraper(FootprintScraper):
         footprints = []
         geoloc_options = [basic_geoloc_method, 'ArcGIS', 'Nominatim', 'Photon'] # alternative methods if basic does not work
         geo_flag = True
+        invalid_id = [] # list of properties that did not get a valid footprint
         
         for bldg_i in range(len(lat)):            
             print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
@@ -427,7 +428,8 @@ class OSM_FootprintScraper(FootprintScraper):
                 for attr in attrkeys:
                     attributes[attr].append('NA')
                 print(' at '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
-                              
+                invalid_id.append(bldg_i)
+                
         # Save in the proper format for AssetInventory class
         attributes["buildingheight"] = [
             self._height2float(height, self.lengthUnit)
@@ -447,4 +449,17 @@ class OSM_FootprintScraper(FootprintScraper):
             f"\nFound a total of {fpbldgscount} building footprints"
         )
         
-        return self._create_asset_inventory(footprints, attributes, self.lengthUnit)
+        inventory = self._create_asset_inventory(footprints, attributes, self.lengthUnit)
+        
+        # Dict with properties with and without footprints from this set
+        invalid_properties = {}
+        invalid_properties['address_list'] = np.array(address_list)[invalid_id]
+        invalid_properties['lat'] = np.array(lat)[invalid_id]
+        invalid_properties['lon'] = np.array(lon)[invalid_id]
+        
+        valid_properties = {}
+        valid_properties['address_list'] = np.delete(np.array(address_list), invalid_id)
+        valid_properties['lat'] = np.delete(np.array(lat), invalid_id)
+        valid_properties['lon'] = np.delete(np.array(lon), invalid_id)
+        
+        return inventory, valid_properties, invalid_properties
