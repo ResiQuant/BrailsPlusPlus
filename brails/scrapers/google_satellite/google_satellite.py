@@ -251,6 +251,7 @@ class GoogleSatellite(ImageScraper):
         self.satellite_images = []
         inps = []
         for fp in footprints:
+            print(fp)
             fp_cent = Polygon(fp).centroid
             self.centroids.append([fp_cent.x, fp_cent.y])
             imName = str(round(fp_cent.y, 8)) + str(round(fp_cent.x, 8))
