@@ -338,8 +338,8 @@ class OSM_FootprintScraper(FootprintScraper):
                     footprints_bldg = [] 
                     attributes_bldg = {key: [] for key in attrkeys}
                     for data in datalist:
-                        #if (data["type"] == "way") and ("tags" in data.keys()):
-                        if ("building" in data["tags"].keys()) and (data["tags"]["building"] == "yes"):
+                        if (data["type"] == "way") and ("tags" in data.keys()):
+                            #if ("building" in data["tags"].keys()) and (data["tags"]["building"] == "yes"):
                             nodes = data["nodes"]
                             footprint = []
                             for node in nodes:
