@@ -182,8 +182,9 @@ class FootprintScraper(ABC):
 
         # Remove attribute corresponding to the removed footprints:
         for i in sorted(ind_remove, reverse=True):
+            del footprints[i]
             for key in attributes.keys():
-                del attributes[key][i]
+                del attributes[key][i]                
 
         # Place the results into an AssetInventory
         inventory = AssetInventory()
