@@ -342,7 +342,7 @@ class OSM_FootprintScraper(FootprintScraper):
                         
                         # Identify if the footprint is a building
                         if (data["type"] == "way"):
-                            if ("tags" in data.keys()) and (not "area" in data["tags"].keys()):
+                            if ("tags" in data.keys()) and (not "area" in data["tags"].keys()) and (not "leisure" in data["tags"].keys()) and (not "landuse" in data["tags"].keys()):
                                 is_bldg_fp = True
                             elif ("tags" not in data.keys()):
                                 is_bldg_fp = True
