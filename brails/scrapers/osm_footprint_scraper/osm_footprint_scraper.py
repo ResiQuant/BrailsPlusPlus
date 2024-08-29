@@ -258,13 +258,14 @@ class OSM_FootprintScraper(FootprintScraper):
         
                 # Geolocate again if not basic method
                 if geoloc_method != basic_geoloc_method:
+                    print('try '+geoloc_method)
                     match geoloc_method:
                         case 'ArcGIS':
-                            geolocator = geopy.ArcGIS()      
+                            geolocator = geopy.ArcGIS(timeout = 10)      
                         case 'Nominatim':
-                            geolocator = geopy.Nominatim(user_agent="my_app") 
+                            geolocator = geopy.Nominatim(user_agent="my_app", timeout = 10) 
                         case 'Photon':
-                            geolocator = geopy.Photon()
+                            geolocator = geopy.Photon(timeout = 10)
                     location = geolocator.geocode(address_list[bldg_i], exactly_one=False)
                     lat[bldg_i], lon[bldg_i] = location[0].latitude, location[0].longitude
                     
