@@ -178,11 +178,11 @@ class FootprintScraper(ABC):
                 if ind == 0:
                     print("removing", ind, footprint)
                 ind_remove.append(ind)
+                del footprints[ind]
                 pass
 
         # Remove attribute corresponding to the removed footprints:
-        for i in sorted(ind_remove, reverse=True):
-            del footprints[i]
+        for i in sorted(ind_remove, reverse=True):            
             for key in attributes.keys():
                 del attributes[key][i]                
 
@@ -192,7 +192,7 @@ class FootprintScraper(ABC):
         for ind, fp in enumerate(footprints):
 
             asset_features = {'type':'Building'}
-            print(attributes)
+            
             for key in attributes.keys():
                 attr = attributes[key][ind]
                 asset_features[key] = "NA" if attr is None else attr
