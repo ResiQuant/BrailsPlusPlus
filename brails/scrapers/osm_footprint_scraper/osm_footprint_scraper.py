@@ -344,19 +344,21 @@ class OSM_FootprintScraper(FootprintScraper):
                             footprints_bldg.append(footprint)
                     
                             fpcount += 1
-                            availableTags = set(data["tags"].keys()).intersection(datakeys)
-                            for tag in availableTags:
-                                nstory = 0
-                                if tag in otherattrkeys:
-                                    attributes_bldg[attrmap[tag]].append(data["tags"][tag])
-                                elif tag in levelkeys:
-                                    try:
-                                        nstory += int(data["tags"][tag])
-                                    except:
-                                        pass
-                    
-                                if nstory > 0:
-                                    attributes_bldg["numstories"].append(nstory)
+                            
+                            if 'tags' in data.keys():
+                                availableTags = set(data["tags"].keys()).intersection(datakeys)
+                                for tag in availableTags:
+                                    nstory = 0
+                                    if tag in otherattrkeys:
+                                        attributes_bldg[attrmap[tag]].append(data["tags"][tag])
+                                    elif tag in levelkeys:
+                                        try:
+                                            nstory += int(data["tags"][tag])
+                                        except:
+                                            pass
+                        
+                                    if nstory > 0:
+                                        attributes_bldg["numstories"].append(nstory)
                             for attr in attrkeys:
                                 if len(attributes[attr]) != fpcount:
                                     attributes_bldg[attr].append("NA")
