@@ -339,31 +339,31 @@ class OSM_FootprintScraper(FootprintScraper):
                     attributes_bldg = {key: [] for key in attrkeys}
                     for data in datalist:
                         if (data["type"] == "way") and ("tags" in data.keys()):
-                            #if ("building" in data["tags"].keys()) and (data["tags"]["building"] == "yes"):
-                            nodes = data["nodes"]
-                            footprint = []
-                            for node in nodes:
-                                footprint.append(nodedict[node])
-                            footprints_bldg.append(footprint)
-                    
-                            fpcount += 1
-                                                    
-                            availableTags = set(data["tags"].keys()).intersection(datakeys)
-                            for tag in availableTags:
-                                nstory = 0
-                                if tag in otherattrkeys:
-                                    attributes_bldg[attrmap[tag]].append(data["tags"][tag])
-                                elif tag in levelkeys:
-                                    try:
-                                        nstory += int(data["tags"][tag])
-                                    except:
-                                        pass
-                    
-                                if nstory > 0:
-                                    attributes_bldg["numstories"].append(nstory)
-                            for attr in attrkeys:
-                                if len(attributes_bldg[attr]) != fpcount:
-                                    attributes_bldg[attr].append("NA")
+                            if not ("area" in data["tags"].keys()):
+                                nodes = data["nodes"]
+                                footprint = []
+                                for node in nodes:
+                                    footprint.append(nodedict[node])
+                                footprints_bldg.append(footprint)
+                        
+                                fpcount += 1
+                                                        
+                                availableTags = set(data["tags"].keys()).intersection(datakeys)
+                                for tag in availableTags:
+                                    nstory = 0
+                                    if tag in otherattrkeys:
+                                        attributes_bldg[attrmap[tag]].append(data["tags"][tag])
+                                    elif tag in levelkeys:
+                                        try:
+                                            nstory += int(data["tags"][tag])
+                                        except:
+                                            pass
+                        
+                                    if nstory > 0:
+                                        attributes_bldg["numstories"].append(nstory)
+                                for attr in attrkeys:
+                                    if len(attributes_bldg[attr]) != fpcount:
+                                        attributes_bldg[attr].append("NA")
                     
                     # Check if footprints were returned
                     if footprint:
