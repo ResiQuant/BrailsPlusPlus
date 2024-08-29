@@ -262,8 +262,8 @@ class GoogleSatellite(ImageScraper):
                 inps.append((fp, im_name))
             except:
                 ##############
+                print('\n ERROR WITH THIS ADDRESS:' + address_list[fp_i])
                 print(fp)
-                print(address_list[fp_i])
                 ##############
 
         # Create a directory to save the satellite images:
