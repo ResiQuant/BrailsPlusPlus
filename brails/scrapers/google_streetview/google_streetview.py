@@ -458,12 +458,13 @@ class GoogleStreetview(ImageScraper):
         self.centroids = []
         street_images = []
         inps = [] 
-        for footprint in footprints:
+        for fp_i, footprint in enumerate(footprints):
             fp = np.fliplr(np.squeeze(np.array(footprint))).tolist()
             fp_cent = Polygon(footprint).centroid
             self.centroids.append([fp_cent.x,fp_cent.y])
-            imName = str(round(fp_cent.y,8))+str(round(fp_cent.x,8))
-            imName.replace(".","")
+            #imName = str(round(fp_cent.y,8))+str(round(fp_cent.x,8))
+            #imName.replace(".","")
+            imName = str(fp_i)
             im_name = f"{dir_path}/imstreet_{imName}.jpg"
             depthmap_name = f"{dir_path}/dmstreet_{imName}.txt"            
             street_images.append(im_name)
@@ -572,25 +573,27 @@ class GoogleStreetview(ImageScraper):
                 key = asset_keys[i]
 
                 # going to rename image files to use key .. barbaros can fix in code so no rename
-                current_file_path = Path(filename)
-                new_name = f'gstrt_{key}{current_file_path.suffix}'
-                new_file_path = current_file_path.parent / new_name
+                #current_file_path = Path(filename)
+                #new_name = f'gstrt_{key}{current_file_path.suffix}'
+                #new_file_path = current_file_path.parent / new_name
 
                 # sy - to prevent error : [WinError 183] Cannot create a file when that file already exists: 'tmp\\street\\imstreet_37.87343446-122.45684953.jpg' -> 'tmp\\street\\gstrt_596.jpg'
                 # we should not download the files
                 #current_file_path.rename(new_file_path)
-                current_file_path.replace(new_file_path)
+                #current_file_path.replace(new_file_path)
 
+                #name_stripped = new_file_path.name
+                current_file_path = Path(filename)
+                name_stripped = current_file_path.name
 
 
                 # might as well do same for depthmap
-                current_depthfile_path = Path(self.depthmaps[i][0])
-                new_depthname = f'dmap_{key}{current_depthfile_path.suffix}'
-                new_depthfile_path = current_depthfile_path.parent / new_depthname                
+                #current_depthfile_path = Path(self.depthmaps[i][0])
+                #new_depthname = f'dmap_{key}{current_depthfile_path.suffix}'
+                #new_depthfile_path = current_depthfile_path.parent / new_depthname                
                 #current_depthfile_path.rename(new_depthfile_path) # sy - gave a permission error when file already exists
-                current_depthfile_path.replace(new_depthfile_path)
-
-                name_stripped = new_file_path.name
+                #current_depthfile_path.replace(new_depthfile_path)
+                current_depthfile_path = Path(self.depthmaps[i][0])
                 
                 properties = {}
                 properties['elev'] = self.cam_elevs[i]
