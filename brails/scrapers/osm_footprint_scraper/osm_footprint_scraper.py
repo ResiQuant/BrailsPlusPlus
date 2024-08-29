@@ -415,7 +415,7 @@ class OSM_FootprintScraper(FootprintScraper):
                     attributes[attr].append(attributes_bldg[attr][fp_idx])
             else:
                 # No footprint returned
-                footprints.append(['NA'])
+                footprints.append([[0,0], [0,0]])
                 for attr in attrkeys:
                     attributes[attr].append('NA')
                 print('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
