@@ -244,7 +244,7 @@ class OSM_FootprintScraper(FootprintScraper):
         invalid_id = [] # list of properties that did not get a valid footprint
         
         for bldg_i in range(len(lat)):            
-            print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
+            #print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
             
             if np.isnan(lat[0]):
                 # no geolocation
@@ -427,7 +427,8 @@ class OSM_FootprintScraper(FootprintScraper):
                 footprints.append([[0,0], [0,0]])
                 for attr in attrkeys:
                     attributes[attr].append('NA')
-                print(' at '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
+                print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
+                print('   at '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
                 invalid_id.append(bldg_i)
                 
         # Save in the proper format for AssetInventory class
