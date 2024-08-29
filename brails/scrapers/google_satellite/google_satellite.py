@@ -255,8 +255,9 @@ class GoogleSatellite(ImageScraper):
             try:
                 fp_cent = Polygon(fp).centroid
                 self.centroids.append([fp_cent.x, fp_cent.y])
-                imName = str(round(fp_cent.y, 8)) + str(round(fp_cent.x, 8))
-                imName.replace(".", "")
+                #imName = str(round(fp_cent.y, 8)) + str(round(fp_cent.x, 8))
+                #imName.replace(".", "")
+                imName = str(fp_i)
                 im_name = f"{self.dir_location}/imsat_{imName}.jpg"
                 self.satellite_images.append(im_name)
                 inps.append((fp, im_name))
@@ -325,14 +326,14 @@ class GoogleSatellite(ImageScraper):
             if (filename is not None):  
                 
                 # going to rename image files to use key .. barbaros can fix in code so no rename
-                current_file_path = Path(filename)
-                new_name = f'imsat_{key}{current_file_path.suffix}'
-                new_file_path = current_file_path.parent / new_name
+                # current_file_path = Path(filename)
+                # new_name = f'imsat_{key}{current_file_path.suffix}'
+                # new_file_path = current_file_path.parent / new_name
 
-                # sy - to prevent error : [WinError 183] Cannot create a file when that file already exists: 'tmp\\street\\imstreet_37.87343446-122.45684953.jpg' -> 'tmp\\street\\gstrt_596.jpg'
-                # we should not download the files
-                #current_file_path.rename(new_file_path)
-                current_file_path.replace(new_file_path)
+                # # sy - to prevent error : [WinError 183] Cannot create a file when that file already exists: 'tmp\\street\\imstreet_37.87343446-122.45684953.jpg' -> 'tmp\\street\\gstrt_596.jpg'
+                # # we should not download the files
+                # #current_file_path.rename(new_file_path)
+                # current_file_path.replace(new_file_path)
 
                 # strip off dirpath
                 name_stripped = new_file_path.name
