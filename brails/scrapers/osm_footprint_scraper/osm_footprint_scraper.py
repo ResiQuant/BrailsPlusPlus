@@ -242,7 +242,7 @@ class OSM_FootprintScraper(FootprintScraper):
         geoloc_options = [basic_geoloc_method, 'ArcGIS', 'Nominatim', 'Photon'] # alternative methods if basic does not work
         geo_flag = True
         
-        for bldg_i in [0]:#range(len(lat)):
+        for bldg_i in range(len(lat)):
             print(address_list[bldg_i] + ', bldg_i = ' + str(bldg_i))
             
             if np.isnan(lat[0]):
