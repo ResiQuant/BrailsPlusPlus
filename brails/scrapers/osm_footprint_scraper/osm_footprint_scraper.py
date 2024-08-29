@@ -337,17 +337,31 @@ class OSM_FootprintScraper(FootprintScraper):
                     footprint = []
                     footprints_bldg = [] 
                     attributes_bldg = {key: [] for key in attrkeys}
+                    
                     for data in datalist:
-                        if (data["type"] == "way") and ("tags" in data.keys()):
-                            if not ("area" in data["tags"].keys()):
-                                nodes = data["nodes"]
-                                footprint = []
-                                for node in nodes:
-                                    footprint.append(nodedict[node])
-                                footprints_bldg.append(footprint)
                         
-                                fpcount += 1
-                                                        
+                        # Identify if the footprint is a building
+                        if (data["type"] == "way"):
+                            if ("tags" in data.keys()) and (not "area" in data["tags"].keys()):
+                                is_bldg_fp = True
+                            elif ("tags" not in data.keys()):
+                                is_bldg_fp = True
+                            else:
+                                is_bldg_fp = False
+                        else:
+                            is_bldg_fp = False
+                            
+                        # if building, collect it
+                        if is_bldg_fp:
+                            nodes = data["nodes"]
+                            footprint = []
+                            for node in nodes:
+                                footprint.append(nodedict[node])
+                            footprints_bldg.append(footprint)
+                    
+                            fpcount += 1
+        
+                            if ("tags" in data.keys()):
                                 availableTags = set(data["tags"].keys()).intersection(datakeys)
                                 for tag in availableTags:
                                     nstory = 0
@@ -358,18 +372,20 @@ class OSM_FootprintScraper(FootprintScraper):
                                             nstory += int(data["tags"][tag])
                                         except:
                                             pass
-                        
+                
                                     if nstory > 0:
                                         attributes_bldg["numstories"].append(nstory)
-                                for attr in attrkeys:
-                                    if len(attributes_bldg[attr]) != fpcount:
-                                        attributes_bldg[attr].append("NA")
+                        
+                            # if no tags
+                            for attr in attrkeys:
+                                if len(attributes_bldg[attr]) != fpcount:
+                                    attributes_bldg[attr].append("NA")                                    
                     
                     # Check if footprints were returned
                     if footprint:
                         fpbldgscount += 1
                         break # do not try more geolocation methods. This returned a footprint
-        
+
             # Review if footprints were returned with all the geolocation trials
             if (footprint) and (geo_flag):
                 # Discard all the footprints that do no intercept with our point and keep the one with centroid 
