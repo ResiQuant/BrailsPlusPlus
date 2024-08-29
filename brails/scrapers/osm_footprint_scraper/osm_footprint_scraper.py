@@ -417,7 +417,7 @@ class OSM_FootprintScraper(FootprintScraper):
                 # No footprint returned
                 footprints.append([[0,0], [0,0]])
                 for attr in attrkeys:
-                    attributes[attr].append(['NA'])
+                    attributes[attr].append('NA')
                 print('coordinates '+str(lat[bldg_i]) + ' ,' + str(lon[bldg_i]) + ' do not overlap with a footprint')
                               
         # Save in the proper format for AssetInventory class
