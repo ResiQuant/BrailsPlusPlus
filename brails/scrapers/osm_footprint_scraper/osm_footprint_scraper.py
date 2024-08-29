@@ -454,13 +454,23 @@ class OSM_FootprintScraper(FootprintScraper):
         
         # Dict with properties with and without footprints from this set
         invalid_properties = {}
-        invalid_properties['address_list'] = np.array(address_list)[invalid_id]
-        invalid_properties['lat'] = np.array(lat)[invalid_id]
-        invalid_properties['lon'] = np.array(lon)[invalid_id]
+        if invalid_id:        
+            invalid_properties['address_list'] = np.array(address_list)[invalid_id]
+            invalid_properties['lat'] = np.array(lat)[invalid_id]
+            invalid_properties['lon'] = np.array(lon)[invalid_id]
+        else:
+            invalid_properties['address_list'] = []
+            invalid_properties['lat'] = []
+            invalid_properties['lon'] = []
         
         valid_properties = {}
-        valid_properties['address_list'] = np.delete(np.array(address_list), invalid_id)
-        valid_properties['lat'] = np.delete(np.array(lat), invalid_id)
-        valid_properties['lon'] = np.delete(np.array(lon), invalid_id)
+        if invalid_id:
+            valid_properties['address_list'] = np.delete(np.array(address_list), invalid_id)
+            valid_properties['lat'] = np.delete(np.array(lat), invalid_id)
+            valid_properties['lon'] = np.delete(np.array(lon), invalid_id)
+        else:
+            invalid_properties['address_list'] = np.array(address_list)
+            invalid_properties['lat'] = np.array(lat)
+            invalid_properties['lon'] = np.array(lon)
         
         return inventory, valid_properties, invalid_properties
