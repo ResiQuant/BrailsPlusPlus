@@ -362,7 +362,7 @@ class OSM_FootprintScraper(FootprintScraper):
                                     if nstory > 0:
                                         attributes_bldg["numstories"].append(nstory)
                                 for attr in attrkeys:
-                                    if len(attributes[attr]) != fpcount:
+                                    if len(attributes_bldg[attr]) != fpcount:
                                         attributes_bldg[attr].append("NA")
                     
                     # Check if footprints were returned
