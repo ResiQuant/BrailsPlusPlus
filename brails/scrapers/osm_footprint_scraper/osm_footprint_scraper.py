@@ -466,8 +466,8 @@ class OSM_FootprintScraper(FootprintScraper):
             valid_properties['lat'] = np.delete(np.array(lat), invalid_id)
             valid_properties['lon'] = np.delete(np.array(lon), invalid_id)
         else:
-            invalid_properties['address_list'] = np.array(address_list)
-            invalid_properties['lat'] = np.array(lat)
-            invalid_properties['lon'] = np.array(lon)
+            valid_properties['address_list'] = np.array(address_list)
+            valid_properties['lat'] = np.array(lat)
+            valid_properties['lon'] = np.array(lon)
         
         return inventory, valid_properties, invalid_properties
