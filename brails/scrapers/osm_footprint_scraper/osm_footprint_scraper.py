@@ -288,29 +288,29 @@ class OSM_FootprintScraper(FootprintScraper):
                     #     out skel qt;
                     #     """
                 
-                    # # Call OSM API at the lat lon
-                    # query = f"""
-                    #     [out:json][timeout:5000][maxsize:2000000000];
-                    #     (
-                    #       is_in({lat[bldg_i]},{lon[bldg_i]});
-                    #       area._[building];
-                    #     );
-                    #     out body; 
-                    #     >; 
-                    #     out skel qt;
-                    #     """
-                
-                    # Call OSM API for building 50m around the given point
+                    # Call OSM API at the lat lon
                     query = f"""
-                    [out:json][timeout:5000][maxsize:2000000000];
-                    is_in({lat[bldg_i]},{lon[bldg_i]})->.searchArea;
-                    (                      
-                      area.searchArea[building];
-                    );
-                    out body; 
-                    >; 
-                    out skel qt;
-                    """
+                        [out:json][timeout:5000][maxsize:2000000000];
+                        (
+                          is_in({lat[bldg_i]},{lon[bldg_i]});
+                          area._[building];
+                        );
+                        out body; 
+                        >; 
+                        out skel qt;
+                        """
+                
+                    # # Call OSM API for building 50m around the given point
+                    # query = f"""
+                    # [out:json][timeout:5000][maxsize:2000000000];
+                    # is_in({lat[bldg_i]},{lon[bldg_i]})->.searchArea;
+                    # (                      
+                    #   area.searchArea[building];
+                    # );
+                    # out body; 
+                    # >; 
+                    # out skel qt;
+                    # """
                     
                     url = "http://overpass-api.de/api/interpreter"
                     r = requests.get(url, params={"data": query})
