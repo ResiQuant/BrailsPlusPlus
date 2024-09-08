@@ -82,8 +82,8 @@ class GoogleSatellite(ImageScraper):
             )
             s.mount("https://", HTTPAdapter(max_retries=retries))
 
-            # Calculatye zoom
-            zoom = 19
+            # adjusted zoom
+            zoom = 20
 
             # Get the tiles for the satellite image:
             tiles = []
