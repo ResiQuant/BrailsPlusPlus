@@ -91,7 +91,7 @@ class GoogleSatellite(ImageScraper):
                 for xind, x in enumerate(xlist):
                     
                     # Calculatye zoom
-                    zoom = calculate_zoom(footprint, x, y)
+                    zoom = 20#calculate_zoom(footprint, x, y)
                     print('ZOOM = '+str(zoom))
                     url = base_url.format(x=x, y=y, z=zoom)
 
