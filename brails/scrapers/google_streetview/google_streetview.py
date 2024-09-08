@@ -86,7 +86,7 @@ class GoogleStreetview(ImageScraper):
         self.apikey = api_key
 
 
-    def GetGoogleStreetImage(self, footprints, dir_path, save_interim_images=False,save_all_cam_metadata=False):
+    def GetGoogleStreetImage(self, footprints, dir_path, address_list, save_interim_images=False,save_all_cam_metadata=False):
         
         def get_bin(a):
             ba = bin(a)[2:]
@@ -459,16 +459,22 @@ class GoogleStreetview(ImageScraper):
         street_images = []
         inps = [] 
         for fp_i, footprint in enumerate(footprints):
-            fp = np.fliplr(np.squeeze(np.array(footprint))).tolist()
-            fp_cent = Polygon(footprint).centroid
-            self.centroids.append([fp_cent.x,fp_cent.y])
-            #imName = str(round(fp_cent.y,8))+str(round(fp_cent.x,8))
-            #imName.replace(".","")
-            imName = str(fp_i)
-            im_name = f"{dir_path}/imstreet_{imName}.jpg"
-            depthmap_name = f"{dir_path}/dmstreet_{imName}.txt"            
-            street_images.append(im_name)
-            inps.append((fp,(fp_cent.y,fp_cent.x),im_name,depthmap_name))
+            try:
+                fp = np.fliplr(np.squeeze(np.array(footprint))).tolist()
+                fp_cent = Polygon(footprint).centroid
+                self.centroids.append([fp_cent.x,fp_cent.y])
+                #imName = str(round(fp_cent.y,8))+str(round(fp_cent.x,8))
+                #imName.replace(".","")
+                imName = str(fp_i)
+                im_name = f"{dir_path}/imstreet_{imName}.jpg"
+                depthmap_name = f"{dir_path}/dmstreet_{imName}.txt"            
+                street_images.append(im_name)
+                inps.append((fp,(fp_cent.y,fp_cent.x),im_name,depthmap_name))
+            except:
+                ##############
+                print('\n ERROR WITH THIS ADDRESS:' + address_list[fp_i])
+                print(fp)
+                ##############
         
         # Download building-wise street-level imagery and depthmap strings:
         pbar = tqdm(total=len(footprints), desc='Obtaining street-level imagery')     
@@ -533,10 +539,10 @@ class GoogleStreetview(ImageScraper):
         self.street_images = street_images.copy()
         
 
-    def get_images(self, inventory: AssetInventory, dir_path: str) -> ImageSet:
+    def get_images(self, inventory: AssetInventory, dir_path: str, address_list) -> ImageSet:
         """
         This method obtains street-level imagery of buildings given the 
-        footprintsin the asset inventory
+        footprints in the asset inventory
 
         Args:
               inventory (AssetInventory):
@@ -564,7 +570,7 @@ class GoogleStreetview(ImageScraper):
             asset_keys.append(key)
 
         # Get the image filenames and properties, and create a new image:
-        self.GetGoogleStreetImage(asset_footprints, dir_path, False, True)
+        self.GetGoogleStreetImage(asset_footprints, dir_path, address_list, False, True)
 
         for i in range(len(asset_keys)):
             
