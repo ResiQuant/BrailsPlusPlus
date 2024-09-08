@@ -82,6 +82,9 @@ class GoogleSatellite(ImageScraper):
             )
             s.mount("https://", HTTPAdapter(max_retries=retries))
 
+            # Calculatye zoom
+            zoom = 19
+
             # Get the tiles for the satellite image:
             tiles = []
             offsets = []
@@ -89,10 +92,6 @@ class GoogleSatellite(ImageScraper):
             ntiles = (len(xlist), len(ylist))
             for yind, y in enumerate(ylist):
                 for xind, x in enumerate(xlist):
-                    
-                    # Calculatye zoom
-                    zoom = 20#calculate_zoom(footprint, x, y)
-                    print('ZOOM = '+str(zoom))
                     url = base_url.format(x=x, y=y, z=zoom)
 
                     # Download tile using the defined retry strategy:
@@ -187,19 +186,6 @@ class GoogleSatellite(ImageScraper):
             xlist = list(range(min(xlist), max(xlist) + 1))
             ylist = list(range(min(ylist), max(ylist) + 1))
             return (xlist, ylist)
-
-            
-        def calculate_zoom(footprint_poly, map_width, map_height):
-            bounds = footprint_poly.bounds
-            lat_diff = bounds[3] - bounds[1]
-            lng_diff = bounds[2] - bounds[0]
-            
-            # Calculate the zoom level for both latitude and longitude
-            lat_zoom = math.floor(math.log(170 * map_height / lat_diff / 256) / math.log(2))
-            lng_zoom = math.floor(math.log(360 * map_width / lng_diff / 256) / math.log(2))
-            
-            # Use the smaller zoom level to ensure the entire footprint is visible
-            return min(lat_zoom, lng_zoom, 21)  # Cap at max zoom level of 21
 
 
         def bufferedfp(footprint):
