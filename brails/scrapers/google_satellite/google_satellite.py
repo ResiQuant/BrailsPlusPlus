@@ -63,7 +63,7 @@ class GoogleSatellite(ImageScraper):
     def GetGoogleSatelliteImage(self, footprints, dir_location, address_list):
 
         self.dir_location = dir_location
-
+        
         def download_satellite_image(footprint, impath):
 
             bbox_buffered = bufferedfp(footprint)
@@ -89,7 +89,9 @@ class GoogleSatellite(ImageScraper):
             ntiles = (len(xlist), len(ylist))
             for yind, y in enumerate(ylist):
                 for xind, x in enumerate(xlist):
-                    url = base_url.format(x=x, y=y, z=20)
+                    zoom = calculate_zoom(footprint, x, y)
+                    print('ZOOM = '+str(zoom))
+                    url = base_url.format(x=x, y=y, z=zoom)
 
                     # Download tile using the defined retry strategy:
                     response = s.get(url)
@@ -98,7 +100,7 @@ class GoogleSatellite(ImageScraper):
                     # tile offsets and bounds:
                     tiles.append(Image.open(BytesIO(response.content)))
                     offsets.append((xind * 256, yind * 256))
-                    tilebnds = tile_bbox(zoom=20, x=x, y=y)
+                    tilebnds = tile_bbox(zoom=zoom, x=x, y=y)
 
                     # If the number of tiles both in x and y directions are greater than 1:
                     if ntiles[0] > 1 and ntiles[1] > 1:
@@ -168,6 +170,7 @@ class GoogleSatellite(ImageScraper):
             resized_im = padded_im.resize((640, 640))
             resized_im.save(impath)
 
+            
         def determine_tile_coords(bbox_buffered):
             # Determine the tile x,y coordinates covering the area the bounding
             # box:
@@ -182,6 +185,20 @@ class GoogleSatellite(ImageScraper):
             xlist = list(range(min(xlist), max(xlist) + 1))
             ylist = list(range(min(ylist), max(ylist) + 1))
             return (xlist, ylist)
+
+            
+        def calculate_zoom(footprint_poly, map_width, map_height):
+            bounds = footprint_poly.bounds
+            lat_diff = bounds[3] - bounds[1]
+            lng_diff = bounds[2] - bounds[0]
+            
+            # Calculate the zoom level for both latitude and longitude
+            lat_zoom = math.floor(math.log(170 * map_height / lat_diff / 256) / math.log(2))
+            lng_zoom = math.floor(math.log(360 * map_width / lng_diff / 256) / math.log(2))
+            
+            # Use the smaller zoom level to ensure the entire footprint is visible
+            return min(lat_zoom, lng_zoom, 21)  # Cap at max zoom level of 21
+
 
         def bufferedfp(footprint):
             # Place a buffer around the footprint to account for footprint
