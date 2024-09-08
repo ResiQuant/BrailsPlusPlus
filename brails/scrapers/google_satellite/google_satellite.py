@@ -89,6 +89,8 @@ class GoogleSatellite(ImageScraper):
             ntiles = (len(xlist), len(ylist))
             for yind, y in enumerate(ylist):
                 for xind, x in enumerate(xlist):
+                    
+                    # Calculatye zoom
                     zoom = calculate_zoom(footprint, x, y)
                     print('ZOOM = '+str(zoom))
                     url = base_url.format(x=x, y=y, z=zoom)
@@ -281,7 +283,7 @@ class GoogleSatellite(ImageScraper):
             except:
                 ##############
                 print('\n ERROR WITH THIS ADDRESS:' + address_list[fp_i])
-                print(fp)
+                #print(fp)
                 ##############
 
         # Create a directory to save the satellite images:
